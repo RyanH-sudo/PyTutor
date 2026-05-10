@@ -137,8 +137,11 @@ export async function runPython(code: string): Promise<RunResult> {
     };
   }
 
-  py.setStdout({ batched: (s) => stdoutChunks.push(s) });
-  py.setStderr({ batched: (s) => stderrChunks.push(s) });
+  // Pyodide's `batched` stdout callback fires once per print() call and
+  // strips the trailing newline. Re-add it so that successive print() calls
+  // render on separate lines (otherwise they all run together).
+  py.setStdout({ batched: (s) => stdoutChunks.push(s + '\n') });
+  py.setStderr({ batched: (s) => stderrChunks.push(s + '\n') });
 
   let ok = true;
   try {
